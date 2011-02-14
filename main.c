@@ -192,7 +192,6 @@ static int __init dmatest_init(void)
 
 	/* Alloc DMA-able buffers */
 	for(i=0; i<channels; i++) {
-		if (debug) printk("DMA test %d\n", i);
 		dma_test[i].count = 0;
 		dma_test[i].next_ch = -1;
 
@@ -239,6 +238,10 @@ static int __init dmatest_init(void)
 			       i, channels);
 			channels = i;
 			break;
+		}
+		if (debug)  {
+			printk("DMA test %d, lch=0x%x\n", i,
+				dma_test[i].dma_ch);
 		}
 
 		/* src buf init */
