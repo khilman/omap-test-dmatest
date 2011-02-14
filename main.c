@@ -44,6 +44,7 @@ struct dma_test_s {
 	unsigned int src_buf_phys, dest_buf_phys;
 	unsigned int count, good;
 	unsigned int max_transfers;
+	bool started;
 };
 static struct dma_test_s dma_test[MAX_CHANNELS];
 
@@ -72,8 +73,10 @@ static void dma_callback(int lch, u16 ch_status, void *data) {
 			       lch, ch_status);
 		t->count++;
 
-		if (t->max_transfers && (t->count >= t->max_transfers)) {
+		if (t->started && 
+		    t->max_transfers && (t->count >= t->max_transfers)) {
 			omap_stop_dma(t->dma_ch);
+			t->started = false;
 		}
 	} else {
 		printk("dma_callback(): Unexpected event on channel %d\n", 
@@ -120,6 +123,7 @@ static void __exit dmatest_cleanup(void)
 	for(i=0; i<channels; i++) {
 		if (dma_test[i].dma_ch >= 0) {
 			omap_stop_dma(dma_test[i].dma_ch);
+			dma_test[i].started = false;
 
 			if (dma_test[i].next_ch != -1)
 				omap_dma_unlink_lch(dma_test[i].dma_ch,
@@ -155,11 +159,13 @@ static int dmatest_start(void) {
 			printk("   Start DMA channel %d\n", 
 			       dma_test[0].dma_ch);
 		omap_start_dma(dma_test[0].dma_ch);
+		dma_test[0].started = true;
 	} else for(i=0; i<channels; i++) {
 		if (debug) 
 			printk("   Start DMA channel %d\n", 
 			       dma_test[i].dma_ch);
 		omap_start_dma(dma_test[i].dma_ch);
+		dma_test[i].started = true;
 	}
 
 	return 0;
