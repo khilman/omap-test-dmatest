@@ -68,10 +68,11 @@ static void dma_callback(int lch, u16 ch_status, void *data) {
 	struct dma_test_s *t = (struct dma_test_s *)data;
 
 	if (lch == t->dma_ch) {
-		if (debug)
-			printk("dma_callback(): lch=0x%x, ch_status=0x%04x\n",
-			       lch, ch_status);
 		t->count++;
+
+		if (debug)
+			printk("dma_callback(): lch=0x%x, count=%d, ch_status=0x%04x, started=%d\n",
+			       lch, ch_status, t->count, t->started);
 
 		if (t->started && 
 		    t->max_transfers && (t->count >= t->max_transfers)) {
