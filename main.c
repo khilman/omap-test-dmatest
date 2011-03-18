@@ -23,7 +23,7 @@ int forever = 0;  /* use recurring timer to restart DMA chain
 int forever_period = 10;
 int channels = 16;
 int loop = 0;     /* last two channels are in a loop */
-int max_transfers = 5;
+int max_transfers = 5;  /* only used for looped channels */
 
 module_param(debug, int, 0);
 module_param(linking, int, 0);
@@ -225,7 +225,7 @@ static int __init dmatest_init(void)
 		/* Setup DMA transfer */
 		dma_test[i].dev_id = OMAP_DMA_NO_DEVICE;
 		dma_test[i].dma_ch = -1;
-		dma_test[i].max_transfers = max_transfers; 
+		dma_test[i].max_transfers = 0;
 		r = omap_request_dma(dma_test[i].dev_id, "DMA Test", 
 				     dma_callback, 
 				     (void *)&dma_test[i], 
