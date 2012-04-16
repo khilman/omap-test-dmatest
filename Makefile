@@ -15,6 +15,6 @@ dmatest.tgz: clean $(dmatest-objs:.o=.c) Makefile
 	(cd ..; tar --exclude CVS --exclude dmatest.tgz -zcvf dmatest/dmatest.tgz ./dmatest)
 
 clean:
-	$(RM) -r *.o *.ko *.mod.c .*.cmd .tmp_versions *.symvers *~ dmatest.tgz
+	$(RM) -r *.o *.ko *.mod.c .*.cmd .tmp_versions *.symvers *~ dmatest.tgz modules.*
 
 
