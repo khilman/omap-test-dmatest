@@ -132,12 +132,12 @@ static void __exit dmatest_cleanup(void)
 		}
 
 		if (dma_test[i].src_buf) {
-			dma_free_coherent(NULL, PAGE_SIZE,
+			dma_free_coherent(NULL, BUF_SIZE,
 					  (void *)dma_test[i].src_buf,
 					  dma_test[i].src_buf_phys);
 		}
 		if (dma_test[i].dest_buf) {
-			dma_free_coherent(NULL, PAGE_SIZE,
+			dma_free_coherent(NULL, BUF_SIZE,
 					  (void *)dma_test[i].dest_buf,
 					  dma_test[i].dest_buf_phys);
 		}
@@ -197,7 +197,7 @@ static int __init dmatest_init(void)
 		dma_test[i].next_ch = -1;
 
 		dma_test[i].src_buf = (unsigned long)
-			dma_alloc_coherent(NULL, PAGE_SIZE,
+			dma_alloc_coherent(NULL, BUF_SIZE,
 					   (dma_addr_t *)&dma_test[i].src_buf_phys,
 					   GFP_KERNEL | GFP_DMA);
 		if (!dma_test[i].src_buf) {
@@ -207,7 +207,7 @@ static int __init dmatest_init(void)
 		}
 
 		dma_test[i].dest_buf = (unsigned long)
-			dma_alloc_coherent(NULL, PAGE_SIZE,
+			dma_alloc_coherent(NULL, BUF_SIZE,
 					   (dma_addr_t *)&dma_test[i].dest_buf_phys,
 					   GFP_KERNEL | GFP_DMA);
 		if (!dma_test[i].dest_buf) {
