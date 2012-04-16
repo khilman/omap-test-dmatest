@@ -24,6 +24,7 @@ int forever_period = 10;
 int channels = 16;
 int loop = 0;     /* last two channels are in a loop */
 int max_transfers = 5;  /* only used for looped channels */
+int buf_size = PAGE_SIZE;
 
 module_param(debug, int, 0);
 module_param(linking, int, 0);
@@ -33,8 +34,8 @@ module_param(forever_period, int, 0);
 module_param(channels, int, 0);
 module_param(loop, int, 0);
 module_param(max_transfers, int, 0);
+module_param(buf_size, int, 0);
 
-#define BUF_SIZE PAGE_SIZE
 #define MAX_CHANNELS 16
 
 struct dma_test_s {
@@ -51,7 +52,7 @@ static int verify_buffer(unsigned int *src, unsigned int *dest) {
 	unsigned int i;
 	unsigned int *s = src, *d = dest;
 
-	for (i=0; i<BUF_SIZE/4; i++) {
+	for (i=0; i<buf_size/4; i++) {
 		if (*s != *d) {
 			printk("DMA copy failed at offset 0x%x.  "
 			       "Expected 0x%08x, got 0x%08x\n",
@@ -132,12 +133,12 @@ static void dmatest_cleanup(void)
 		}
 
 		if (dma_test[i].src_buf) {
-			dma_free_coherent(NULL, BUF_SIZE,
+			dma_free_coherent(NULL, buf_size,
 					  (void *)dma_test[i].src_buf,
 					  dma_test[i].src_buf_phys);
 		}
 		if (dma_test[i].dest_buf) {
-			dma_free_coherent(NULL, BUF_SIZE,
+			dma_free_coherent(NULL, buf_size,
 					  (void *)dma_test[i].dest_buf,
 					  dma_test[i].dest_buf_phys);
 		}
@@ -197,7 +198,7 @@ static int __init dmatest_init(void)
 		dma_test[i].next_ch = -1;
 
 		dma_test[i].src_buf = (unsigned long)
-			dma_alloc_coherent(NULL, BUF_SIZE,
+			dma_alloc_coherent(NULL, buf_size,
 					   (dma_addr_t *)&dma_test[i].src_buf_phys,
 					   GFP_KERNEL | GFP_DMA);
 		if (!dma_test[i].src_buf) {
@@ -207,7 +208,7 @@ static int __init dmatest_init(void)
 		}
 
 		dma_test[i].dest_buf = (unsigned long)
-			dma_alloc_coherent(NULL, BUF_SIZE,
+			dma_alloc_coherent(NULL, buf_size,
 					   (dma_addr_t *)&dma_test[i].dest_buf_phys,
 					   GFP_KERNEL | GFP_DMA);
 		if (!dma_test[i].dest_buf) {
@@ -248,11 +249,11 @@ static int __init dmatest_init(void)
 		/* src buf init */
 		if (debug) printk("   pre-filling src buf %d\n", i);
 		p = (unsigned int *)dma_test[i].src_buf;
-		for(j=0; j<BUF_SIZE/4; j++) {
+		for(j=0; j<buf_size/4; j++) {
 			p[j] = (~j << 24) | (dma_test[i].dma_ch << 16) |  j;
 		}
 
-		elem_count = BUF_SIZE/4;
+		elem_count = buf_size/4;
 		frame_count = 1;
 		omap_set_dma_transfer_params(dma_test[i].dma_ch,
 					     OMAP_DMA_DATA_TYPE_S32,
