@@ -6,6 +6,7 @@
 #include <linux/init.h>
 #include <linux/proc_fs.h>
 #include <linux/dma-mapping.h>
+#include <linux/hrtimer.h>
 
 #include <plat/dma.h>
 
@@ -45,6 +46,8 @@ struct dma_test_s {
 	unsigned int src_buf_phys, dest_buf_phys;
 	unsigned int count, good;
 	unsigned int max_transfers;
+	ktime_t start, end;
+	s64 diff;
 };
 static struct dma_test_s dma_test[MAX_CHANNELS];
 
@@ -68,6 +71,8 @@ static void dma_callback(int lch, u16 ch_status, void *data) {
 	struct dma_test_s *t = (struct dma_test_s *)data;
 
 	if (lch == t->dma_ch) {
+		t->end = ktime_get();
+		t->diff = ktime_us_delta(t->end, t->start);
 		t->count++;
 
 		if (debug)
@@ -99,14 +104,16 @@ static int dmatest_read_procmem(char *buf, char **start, off_t offset,
 
 	len += sprintf(buf+len, "OMAP DMA test\n");
 
-	len += sprintf(buf+len, " Ch# Nxt count good max\n");
+	len += sprintf(buf+len, " Ch# Nxt count good max MB/secs\n");
 	for(i=0; i<channels; i++) {
-		len += sprintf(buf+len, " %2d%s%2d %4d %4d %4d\n",
+		len += sprintf(buf+len, " %2d%s%2d %4d %4d %4d %8ld\n",
 			       dma_test[i].dma_ch, 
 			       dma_test[i].next_ch != -1 ? "->" : "  ",
 			       dma_test[i].next_ch,
 			       dma_test[i].count, dma_test[i].good,
-			       dma_test[i].max_transfers);
+			       dma_test[i].max_transfers,
+			       dma_test[i].diff ? buf_size / (unsigned long)dma_test[i].diff : -1
+			);
 	}
 
 	return len;
@@ -152,15 +159,22 @@ static void dmatest_cleanup(void)
 static int dmatest_start(void) {
 	int i;
 
+	for(i=0; i<channels; i++) {
+		dma_test[i].start = dma_test[i].end = ktime_set(0,0);
+		dma_test[i].diff = 0;
+	}
+
 	if (linking) {
 		if (debug) 
 			printk("   Start DMA channel %d\n", 
 			       dma_test[0].dma_ch);
+		dma_test[0].start = dma_test[0].end = ktime_get();
 		omap_start_dma(dma_test[0].dma_ch);
 	} else for(i=0; i<channels; i++) {
 		if (debug) 
 			printk("   Start DMA channel %d\n", 
 			       dma_test[i].dma_ch);
+		dma_test[i].start = dma_test[i].end = ktime_get();
 		omap_start_dma(dma_test[i].dma_ch);
 	}
 
