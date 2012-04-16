@@ -111,7 +111,7 @@ static int dmatest_read_procmem(char *buf, char **start, off_t offset,
 	return len;
 }
 
-static void __exit dmatest_cleanup(void) 
+static void dmatest_cleanup(void) 
 {
 	int i;
 
